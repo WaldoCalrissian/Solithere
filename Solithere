@@ -1,0 +1,257 @@
+# you will have to find playing cards to download
+from click import pass_context
+import pygame
+import pyautogui
+import os
+import random
+import math
+
+pygame.init()
+clock = pygame.time.Clock()
+os.environ['SDL_VIDEO_WINDOW_POS'] = str(200) + "," + str(30)
+WIDTH, HEIGHT = 1900, 800
+win = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Solithere")
+font = pygame.font.Font('freesansbold.ttf', 32)
+WHITE = (255, 255, 255)
+GRAY = (128, 128, 128)
+RED = (255, 0, 0)
+Card_Width = 71
+Card_Height = 96
+row = 0
+column = 0  
+start_x = 0
+start_y = 0
+offset_y = 125
+offset_x = 125
+deal = 0
+FPS = 60
+click = False
+One_Shot = 0
+Deck = []
+images = []
+Cards = []
+Clicked_Card = 0
+from_y = 0
+from_x = 0
+count = 0
+Card_List = []
+point = [0,0]
+index = 0 
+Out_of_Bounds = True
+correct = 0
+release_coordy = 0
+release_coordx = 0
+first = 0
+
+empty_rect = pygame.Rect(0, 0, 1, 1)
+test_rect = pygame.Rect(0, 0, 1, 1)
+
+#Deck.append(0)
+for i in range (0, 66):
+    Deck.append(i)
+random.shuffle(Deck)
+for i in range (0, 66):
+    Card_List.append(Deck[i])
+
+class Hoyle():
+    def __init__(self, image, number, row_x, column_y, orig_x, orig_y):
+        self.image = image
+        self.number = number
+        self.row_x = row_x
+        self.column_y = column_y
+        self.orig_x = orig_x
+        self.orig_y = orig_y
+        self.rect = self.image.get_rect()
+        self.rect.x = row_x
+        self.rect.y = column_y
+
+for i in range(0, 66):
+        # you will have to find playing cards to download these were in gif format 
+        # point to a location on your computer that replaces the path below
+        # character 92 replaces the forward slash character 
+        image = pygame.image.load(r'C:' + chr(92) + 'Users' + chr(92) + 'walter.swietlik' + chr(92) + 'PyThon' +  chr(92) + 'Cards' +  chr(92) + str(Card_List[i]) + '.gif')
+        images.append(image)
+
+def Grid_Lines():
+    count = 0
+    white = (255,255,255)
+    red = (255,0,0)
+    green = (0,255,0)
+    x_coord = 0
+    y_coord = 0
+    correct = 0
+    repre = "clubs diamonds spades hearts"
+    # club 2663 heart 2665 spade 2660 diamond 2666
+    text = font.render(repre, True, green, red)
+    textRect = text.get_rect()
+    textRect.center = (250, 50)
+    win.blit(text, textRect)
+    repre = "250         350        450       550        650        750        850       950       1050      1150       1250      1350      1450"
+    text = font.render(repre, True, green, red)
+    textRect = text.get_rect()
+    textRect.center = (900, 100)
+    win.blit(text, textRect)
+
+    for r in range(1, 6):
+        for c in range(1, 14):
+            y_coord = (c * offset_y + start_y - 25)
+            x_coord = (r * offset_x + start_x -10)
+            empty_rect = pygame.Rect(y_coord, x_coord, 125, 125)
+            color = green
+            pygame.draw.rect(win, color, empty_rect, 1)
+    
+def Spread():
+    white = (255,255,255)
+    first = 0
+    win.fill(GRAY)
+    Grid_Lines()
+    x_coord = 0 
+    y_coord = 0
+    for r in range(1, 6):
+        for c in range(1, 14):
+            #offset_y
+            y_coord = (c * offset_y + start_y)
+            x_coord = (r * offset_x + start_x)
+            
+            #mouse_rect = pygame.Rect(y_coord, x_coord, Card_Width, Card_Height)
+            #pygame.draw.rect(win, white, mouse_rect, 1)
+            Cards.append(Hoyle(images[first], first, x_coord, y_coord, x_coord, y_coord))
+            win.blit(Cards[first].image, (y_coord, x_coord))
+
+            first = first + 1
+          
+    pygame.display.update()
+
+def Move_Card(count):
+
+    pos = pygame.mouse.get_pos()
+    mousey_coord = pos[0]
+    mousex_coord = pos[1]
+    Cards[count].column_y = mousey_coord
+    Cards[count].row_x = mousex_coord
+    first = 0
+    win.fill(GRAY)
+    Grid_Lines()
+    for r in range(1, 6):
+        for c in range(1, 14):
+            win.blit(Cards[first].image, (Cards[first].column_y, Cards[first].row_x))
+            first = first + 1
+    pygame.display.update()
+ 
+def Refresh():
+    win.fill(GRAY)
+    Grid_Lines()
+    first = 0
+    for r in range(1, 6):
+        for c in range(1, 14):
+            win.blit(Cards[first].image, (Cards[first].column_y, Cards[first].row_x))
+            first = first + 1
+    pygame.display.update()  
+
+run = True   
+while run:
+    
+    clock.tick(FPS)
+    if deal == 0:
+        Spread()
+        
+    deal = 1
+    
+    for event in pygame.event.get():
+        
+        if event.type == pygame.QUIT:
+            run = False
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            click = True
+            if event.type == pygame.MOUSEMOTION:
+                in_motion = True
+        if event.type == pygame.MOUSEBUTTONUP:
+            click = False
+
+        if click == False:
+            if One_Shot == 1:
+                Out_of_Bounds = True
+                for r in range(1, 6):
+                   for c in range(1, 14):
+                       #Cards[count].column_y = mousey_coord
+                       #Cards[count].row_x = mousex_coord
+                       y_coord = (c * offset_y + start_y - 25)
+                       x_coord = (r * offset_x + start_x -10)
+                       empty_rect = pygame.Rect(y_coord, x_coord, 125, 125)
+                       pygame.draw.rect(win, GRAY, empty_rect, 1)
+                       #card width and height = 1 to force location of the card
+                       card_rect = pygame.Rect(Cards[Clicked_Card].row_x, Cards[Clicked_Card].column_y, 1, 1)
+                       pygame.draw.rect(win, GRAY, card_rect, 1)
+                       if empty_rect.colliderect(card_rect):
+                           row = r
+                           column = c
+                           b = 0
+                           b = (row - 1 + ((column -1) * 13))
+                           Out_of_Bounds = False
+                           print("to here")
+                           print(b)
+            if Out_of_Bounds == True:
+                #RETURN CARD TO ORIGINAL LOCATION
+                Cards[Clicked_Card].row_x = Cards[Clicked_Card].orig_x
+                Cards[Clicked_Card].column_y = Cards[Clicked_Card].orig_y
+                One_Shot = 0 
+            if One_Shot == 1:
+                if Out_of_Bounds == False:
+                    if b == from_here:
+                        Cards[from_here].row_x = Cards[from_here].orig_x
+                        Cards[from_here].column_y = Cards[from_here].orig_y
+                    if b != from_here:
+                        Cards[b].row_x = Cards[from_here].orig_x
+                        Cards[b].column_y = Cards[from_here].orig_y
+                        Cards[from_here].row_x = Cards[b].orig_x
+                        Cards[from_here].column_y = Cards[b].orig_y
+
+                        Cards[b].orig_x = Cards[b].row_x
+                        Cards[b].orig_y = Cards[b].column_y
+                        Cards[from_here].orig_x = Cards[from_here].row_x
+                        Cards[from_here].orig_y = Cards[from_here].column_y
+
+                    One_Shot = 0    
+
+            
+            #index = 0
+            #for count in range (0,65):
+            #    Cards[index].row_x = Cards[index].orig_x
+            #    Cards[index].column_y = Cards[index].orig_y
+            #    index = index + 1
+
+            Refresh()
+            
+
+        if click == True:
+            
+            if One_Shot == 0:
+                for count in range (0,65):
+                    pos = pygame.mouse.get_pos()
+                    y_coord = pos[0]
+                    x_coord = pos[1]
+                    mouse_rect = pygame.Rect(x_coord, y_coord, 1, 1)
+                    pygame.draw.rect(win, RED, mouse_rect, 1)
+                    card_rect = pygame.Rect(Cards[count].row_x, Cards[count].column_y, Card_Width, Card_Height)
+                    pygame.draw.rect(win, RED, card_rect, 1)
+                    if mouse_rect.colliderect(card_rect):
+                        Clicked_Card = count
+                        Clicked_x = Cards[Clicked_Card].orig_x
+                        Clicked_y = Cards[Clicked_Card].orig_y
+                        print("clicked")
+                        print(count)
+                        c = math.floor((y_coord - 35)/100)
+                        r = math.floor((x_coord - 48)/100)
+                        from_here = (c - 1 + ((r - 1) * 13))
+                        print("card info")
+                        print(Cards[count].number)
+                        print("from here")
+                        print(from_here)
+                        One_Shot = 1
+            if One_Shot == 1:
+                Move_Card(Clicked_Card)
+                Refresh()
+                
+pygame.quit()
+
